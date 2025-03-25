@@ -1,0 +1,89 @@
+OPT_LEVEL = Some(0)
+TARGET = Some(x86_64-pc-windows-msvc)
+cargo:rerun-if-env-changed=VCINSTALLDIR
+VCINSTALLDIR = None
+cargo:rerun-if-env-changed=VSTEL_MSBuildProjectFullPath
+VSTEL_MSBuildProjectFullPath = None
+cargo:rerun-if-env-changed=VSCMD_ARG_VCVARS_SPECTRE
+VSCMD_ARG_VCVARS_SPECTRE = None
+cargo:rerun-if-env-changed=WindowsSdkDir
+WindowsSdkDir = None
+cargo:rerun-if-env-changed=WindowsSDKVersion
+WindowsSDKVersion = None
+cargo:rerun-if-env-changed=LIB
+LIB = None
+PATH = Some(C:\Users\ZMF\Desktop\rust\椤圭洰\rust-work\flr\target\debug\deps;C:\Users\ZMF\Desktop\rust\椤圭洰\rust-work\flr\target\debug;C:\Users\ZMF\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\MATLAB\R2022b\bin;C:\texlive\2023\bin\windows;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Program Files\TortoiseGit\bin;C:\Program Files\Docker\Docker\resources\bin;C:\Users\ZMF\.cargo\bin;C:\Users\ZMF\AppData\Local\Microsoft\WindowsApps;C:\Users\ZMF\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\ZMF\.dotnet\tools;C:\Users\ZMF\AppData\Local\GitHubDesktop\bin;C:\Users\ZMF\anaconda3\Scripts;C:\msys64\ucrt64\bin;D:\鐠囨儳鍞寸�圭偤鐛橽win32;C:\modelsim_dlx64_10.6c\win64pe;)
+cargo:rerun-if-env-changed=INCLUDE
+INCLUDE = None
+HOST = Some(x86_64-pc-windows-msvc)
+cargo:rerun-if-env-changed=CC_x86_64-pc-windows-msvc
+CC_x86_64-pc-windows-msvc = None
+cargo:rerun-if-env-changed=CC_x86_64_pc_windows_msvc
+CC_x86_64_pc_windows_msvc = None
+cargo:rerun-if-env-changed=HOST_CC
+HOST_CC = None
+cargo:rerun-if-env-changed=CC
+CC = None
+cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+CRATE_CC_NO_DEFAULTS = None
+CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+DEBUG = Some(true)
+cargo:rerun-if-env-changed=CFLAGS
+CFLAGS = None
+cargo:rerun-if-env-changed=HOST_CFLAGS
+HOST_CFLAGS = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_msvc
+CFLAGS_x86_64_pc_windows_msvc = None
+cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-msvc
+CFLAGS_x86_64-pc-windows-msvc = None
+CARGO_ENCODED_RUSTFLAGS = Some()
+cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+blocksort.c
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): warning C4005: “BZ_EXPORT”: 宏重定义
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): note: 之前在命令行上声明的“BZ_EXPORT”
+huffman.c
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): warning C4005: “BZ_EXPORT”: 宏重定义
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): note: 之前在命令行上声明的“BZ_EXPORT”
+crctable.c
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): warning C4005: “BZ_EXPORT”: 宏重定义
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): note: 之前在命令行上声明的“BZ_EXPORT”
+randtable.c
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): warning C4005: “BZ_EXPORT”: 宏重定义
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): note: 之前在命令行上声明的“BZ_EXPORT”
+compress.c
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): warning C4005: “BZ_EXPORT”: 宏重定义
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): note: 之前在命令行上声明的“BZ_EXPORT”
+decompress.c
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): warning C4005: “BZ_EXPORT”: 宏重定义
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): note: 之前在命令行上声明的“BZ_EXPORT”
+bzlib.c
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): warning C4005: “BZ_EXPORT”: 宏重定义
+C:\Users\ZMF\.cargo\registry\src\mirrors.ustc.edu.cn-04b7754156161b43\bzip2-sys-0.1.13+1.0.8\bzip2-1.0.8\bzlib.h(70): note: 之前在命令行上声明的“BZ_EXPORT”
+exit code: 0
+exit code: 0
+exit code: 0
+exit code: 0
+exit code: 0
+exit code: 0
+exit code: 0
+cargo:rerun-if-env-changed=AR_x86_64-pc-windows-msvc
+AR_x86_64-pc-windows-msvc = None
+cargo:rerun-if-env-changed=AR_x86_64_pc_windows_msvc
+AR_x86_64_pc_windows_msvc = None
+cargo:rerun-if-env-changed=HOST_AR
+HOST_AR = None
+cargo:rerun-if-env-changed=AR
+AR = None
+cargo:rerun-if-env-changed=ARFLAGS
+ARFLAGS = None
+cargo:rerun-if-env-changed=HOST_ARFLAGS
+HOST_ARFLAGS = None
+cargo:rerun-if-env-changed=ARFLAGS_x86_64_pc_windows_msvc
+ARFLAGS_x86_64_pc_windows_msvc = None
+cargo:rerun-if-env-changed=ARFLAGS_x86_64-pc-windows-msvc
+ARFLAGS_x86_64-pc-windows-msvc = None
+cargo:rustc-link-search=native=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.39.33519\atlmfc\lib\x64
+cargo:rustc-link-lib=static=bz2
+cargo:rustc-link-search=native=C:\Users\ZMF\Desktop\rust\椤圭洰\rust-work\flr\target\debug\build\bzip2-sys-dd6ccf529fe48b13\out\lib
+cargo:root=C:\Users\ZMF\Desktop\rust\椤圭洰\rust-work\flr\target\debug\build\bzip2-sys-dd6ccf529fe48b13\out
+cargo:include=C:\Users\ZMF\Desktop\rust\椤圭洰\rust-work\flr\target\debug\build\bzip2-sys-dd6ccf529fe48b13\out\include

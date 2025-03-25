@@ -1,2 +1,2 @@
 # rust-work
-测试上传
+vscode data堵了del ~/.cargo/.package-cache　
