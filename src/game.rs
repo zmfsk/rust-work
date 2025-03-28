@@ -18,12 +18,6 @@ impl GameState {
             is_game_over: false,
         }
     }
-
-    pub fn reset(&mut self) {
-        self.board = [[None; GRID_SIZE + 1]; GRID_SIZE + 1];
-        self.current_turn = Stone::Black;
-        self.is_game_over = false;
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -31,6 +25,3 @@ pub enum Stone {
     Black,
     White,
 }
-
-#[derive(Component)]
-pub struct StoneComponent;
