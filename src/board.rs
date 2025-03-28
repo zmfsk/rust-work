@@ -1,4 +1,4 @@
-use crate::game::{CELL_SIZE, GRID_SIZE};
+use crate::game::{CELL_SIZE, GRID_SIZE, Stone};
 use bevy::prelude::*;
 
 pub fn setup_board(mut commands: Commands) {
@@ -35,38 +35,76 @@ pub fn setup_board(mut commands: Commands) {
         });
     }
 
-    // 计算重置按钮位置
+    // 计算按钮位置
     let button_x = board_offset + (GRID_SIZE as f32 * CELL_SIZE) / 2.0 + 200.0;
-    let button_y = 200.0;
+    let reset_button_y = 250.0;
+    let switch_button_y = 150.0;
 
     // 添加重置按钮
     commands.spawn((
         SpriteBundle {
             sprite: Sprite {
                 color: Color::rgb(0.8, 0.8, 0.8),
-                custom_size: Some(Vec2::new(100.0, 40.0)),
+                custom_size: Some(Vec2::new(150.0, 60.0)),
                 ..default()
             },
-            transform: Transform::from_xyz(button_x, button_y, 1.0),
+            transform: Transform::from_xyz(button_x, reset_button_y, 1.0),
             ..default()
         },
         ResetButton,
     ));
 
-    // 添加按钮文字
+    // 添加重置按钮文字
     commands.spawn(Text2dBundle {
         text: Text::from_section(
-            "Reset",
+            "Reset Game",
             TextStyle {
-                font_size: 20.0,
+                font_size: 24.0,
                 color: Color::BLACK,
                 ..default()
             },
         ).with_alignment(TextAlignment::Center),
-        transform: Transform::from_xyz(button_x, button_y, 2.0),
+        transform: Transform::from_xyz(button_x, reset_button_y, 2.0),
         ..default()
     });
+
+    // 添加切换按钮
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgb(0.8, 0.8, 0.8),
+                custom_size: Some(Vec2::new(150.0, 60.0)),
+                ..default()
+            },
+            transform: Transform::from_xyz(button_x, switch_button_y, 1.0),
+            ..default()
+        },
+        SwitchButton,
+    ));
+
+    // 添加切换按钮文字
+    commands.spawn((
+        Text2dBundle {
+            text: Text::from_section(
+                "AI: White\nClick to Switch",
+                TextStyle {
+                    font_size: 24.0,
+                    color: Color::BLACK,
+                    ..default()
+                },
+            ).with_alignment(TextAlignment::Center),
+            transform: Transform::from_xyz(button_x, switch_button_y, 2.0),
+            ..default()
+        },
+        SwitchButtonText,
+    ));
 }
 
 #[derive(Component)]
 pub struct ResetButton;
+
+#[derive(Component)]
+pub struct SwitchButton;
+
+#[derive(Component)]
+pub struct SwitchButtonText;

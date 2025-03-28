@@ -12,39 +12,10 @@ pub fn place_stone(
     buttons: Res<Input<MouseButton>>,
     mut game_state: ResMut<GameState>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
-    reset_button_query: Query<(&ResetButton, &GlobalTransform)>,
-    stone_query: Query<Entity, With<StoneComponent>>,
+    
+    
 ) {
     let window = windows.single();
-
-    // 检查是否点击了重置按钮
-    if buttons.just_pressed(MouseButton::Left) {
-        if let Some(cursor_position) = window.cursor_position() {
-            if let Some((camera, camera_transform)) = camera_query.get_single().ok() {
-                if let Some(world_position) = camera.viewport_to_world_2d(camera_transform, cursor_position) {
-                    for (_, transform) in reset_button_query.iter() {
-                        let button_pos = transform.translation();
-                        let button_rect = Rect::new(
-                            button_pos.x - 50.0,
-                            button_pos.y - 20.0,
-                            button_pos.x + 50.0,
-                            button_pos.y + 20.0,
-                        );
-                        
-                        if button_rect.contains(world_position) {
-                            // 重置游戏状态
-                            game_state.reset();
-                            // 清除所有棋子
-                            for entity in stone_query.iter() {
-                                commands.entity(entity).despawn_recursive();
-                            }
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     if game_state.is_game_over {
         return;
