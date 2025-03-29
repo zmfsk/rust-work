@@ -155,28 +155,22 @@ fn handle_buttons(
                         );
                         
                         if button_rect.contains(world_position) {
-                            // 检查棋盘是否为空
-                            let mut is_board_empty = true;
-                            for row in 0..=GRID_SIZE {
-                                for col in 0..=GRID_SIZE {
-                                    if game_state.board[row][col].is_some() {
-                                        is_board_empty = false;
-                                        break;
-                                    }
-                                }
-                                if !is_board_empty {
-                                    break;
-                                }
+                            // 切换AI的棋子颜色
+                            let current_stone = ai.get_stone();
+                            let new_stone = match current_stone {
+                                Stone::Black => Stone::White,
+                                Stone::White => Stone::Black,
+                            };
+                            ai.set_stone(new_stone);
+                            
+                            // 重置游戏状态
+                            game_state.reset();
+                            
+                            // 清除所有棋子
+                            for entity in stone_query.iter() {
+                                commands.entity(entity).despawn();
                             }
-
-                            if is_board_empty {
-                                // 切换AI的棋子颜色
-                                let current_stone = ai.get_stone();
-                                ai.set_stone(match current_stone {
-                                    Stone::Black => Stone::White,
-                                    Stone::White => Stone::Black,
-                                });
-                            }
+                            
                             return;
                         }
                     }
