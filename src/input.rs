@@ -1,6 +1,5 @@
 use crate::game::{CELL_SIZE, GRID_SIZE, GameState, Stone, StoneComponent};
 use crate::game_manager::check_victory;
-use crate::board::ResetButton;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
@@ -12,8 +11,6 @@ pub fn place_stone(
     buttons: Res<Input<MouseButton>>,
     mut game_state: ResMut<GameState>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
-    
-    
 ) {
     let window = windows.single();
 
@@ -31,14 +28,16 @@ pub fn place_stone(
                     let row = ((world_position.y + (GRID_SIZE as f32 * CELL_SIZE) / 2.0)
                         / CELL_SIZE)
                         .round() as usize;
-                    let col = ((world_position.x - BOARD_OFFSET + (GRID_SIZE as f32 * CELL_SIZE) / 2.0)
+                    let col = ((world_position.x - BOARD_OFFSET
+                        + (GRID_SIZE as f32 * CELL_SIZE) / 2.0)
                         / CELL_SIZE)
                         .round() as usize;
 
                     if row <= GRID_SIZE && col <= GRID_SIZE && game_state.board[row][col].is_none()
                     {
                         println!("row: {}, col: {}", row, col);
-                        let stone_x = (col as f32 - (GRID_SIZE as f32) / 2.0) * CELL_SIZE + BOARD_OFFSET;
+                        let stone_x =
+                            (col as f32 - (GRID_SIZE as f32) / 2.0) * CELL_SIZE + BOARD_OFFSET;
                         let stone_y = (row as f32 - (GRID_SIZE as f32) / 2.0) * CELL_SIZE;
 
                         let color = match game_state.current_turn {

@@ -1,4 +1,4 @@
-use crate::game::{CELL_SIZE, GRID_SIZE, Stone};
+use crate::game::{CELL_SIZE, GRID_SIZE};
 use bevy::prelude::*;
 
 pub fn setup_board(mut commands: Commands) {
@@ -63,7 +63,8 @@ pub fn setup_board(mut commands: Commands) {
                 color: Color::BLACK,
                 ..default()
             },
-        ).with_alignment(TextAlignment::Center),
+        )
+        .with_alignment(TextAlignment::Center),
         transform: Transform::from_xyz(button_x, reset_button_y, 2.0),
         ..default()
     });
@@ -92,7 +93,8 @@ pub fn setup_board(mut commands: Commands) {
                     color: Color::BLACK,
                     ..default()
                 },
-            ).with_alignment(TextAlignment::Center),
+            )
+            .with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(button_x, switch_button_y, 2.0),
             ..default()
         },
