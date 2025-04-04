@@ -3,6 +3,7 @@ mod board;
 mod game;
 mod game_manager;
 mod input;
+mod ui; // 添加新模块
 
 use agent::SmartAgent;
 use bevy::prelude::*;
@@ -11,6 +12,7 @@ use board::{ResetButton, SwitchButton, SwitchButtonText, setup_board};
 use game::{CELL_SIZE, GRID_SIZE, GameState, Stone, StoneComponent};
 use game_manager::check_victory;
 use input::place_stone;
+use ui::{AppState, StartButton, UsageButton, CloseButton, UsageWindow, setup_main_menu, handle_start_button, handle_usage_button, handle_close_button, cleanup_main_menu}; // 导入UI组件和系统
 
 const BOARD_OFFSET: f32 = -200.0;
 
@@ -19,25 +21,35 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.9, 0.8, 0.6)))
         .insert_resource(GameState::new())
         .insert_resource(SmartAgent::new(Stone::White)) // 默认AI使用白子
+        .add_state::<AppState>() // 添加应用状态
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "五子棋".into(),
+                resolution: (1200.0,800.0).into(),
                 ..default()
             }),
             ..default()
         }))
         .add_plugins(ShapePlugin)
-        .add_systems(Startup, setup_board)
-        .add_systems(Update, handle_buttons.before(place_stone)) // 先处理按钮
-        .add_systems(Update, place_stone) // 玩家落子
-        .add_systems(Update, check_victory_system.after(place_stone)) // 先检查玩家是否获胜
-        .add_systems(Update, ai_move.after(check_victory_system)) // 确保AI只在游戏未结束时落子
+        // 主菜单系统
+        .add_systems(Startup, setup_main_menu) // 让UI模块管理相机
+        .add_systems(Update, handle_start_button.run_if(in_state(AppState::MainMenu)))
+        .add_systems(Update, handle_usage_button.run_if(in_state(AppState::MainMenu)))
+        .add_systems(Update, handle_close_button.run_if(in_state(AppState::MainMenu)))
+        .add_systems(OnExit(AppState::MainMenu), cleanup_main_menu)
+        // 游戏系统
+        .add_systems(OnEnter(AppState::InGame), setup_board)
+        .add_systems(Update, handle_buttons.before(place_stone).run_if(in_state(AppState::InGame)))
+        .add_systems(Update, place_stone.run_if(in_state(AppState::InGame)))
+        .add_systems(Update, check_victory_system.after(place_stone).run_if(in_state(AppState::InGame)))
+        .add_systems(Update, ai_move.after(check_victory_system).run_if(in_state(AppState::InGame)))
         .add_systems(
             Update,
-            update_switch_button_text.after(check_victory_system),
-        ) // 更新按钮
+            update_switch_button_text.after(check_victory_system).run_if(in_state(AppState::InGame)),
+        )
         .run();
 }
+
 
 /// 系统：检查胜负
 fn check_victory_system(mut game_state: ResMut<GameState>) {
