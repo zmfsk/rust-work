@@ -154,44 +154,51 @@ pub fn handle_start_button(
 
 // 清理主菜单
 pub fn cleanup_main_menu(
-    mut commands: Commands,
-    button_query: Query<Entity, Or<(With<StartButton>, With<UsageButton>, With<CloseButton>)>>,
-    window_query: Query<Entity, With<UsageWindow>>,
-    camera_query: Query<Entity, With<MainMenuCamera>>,
-    text_query: Query<Entity, With<Text>>,
-    node_query: Query<Entity, With<Node>>,
+    world: &mut World,
 ) {
-    // 删除所有按钮
-    for entity in button_query.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
+    // 使用世界直接查询和删除实体
     
-    // 删除所有窗口
-    for entity in window_query.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
+    // 首先收集所有需要删除的实体
+    let mut entities_to_despawn = Vec::new();
     
-    // 删除主菜单相机
-    for entity in camera_query.iter() {
-        commands.entity(entity).despawn();
-    }
+    // 收集按钮实体
+    let button_entities = world.query_filtered::<Entity, Or<(With<StartButton>, With<UsageButton>, With<CloseButton>)>>()
+        .iter(world)
+        .collect::<Vec<_>>();
+    entities_to_despawn.extend(button_entities);
     
-    // 删除所有文本（包括标题）
-    for entity in text_query.iter() {
-        // 避免重复删除按钮和窗口中的文本
-        if !commands.get_entity(entity).is_some() {
-            continue;
+    // 收集窗口实体
+    let window_entities = world.query_filtered::<Entity, With<UsageWindow>>()
+        .iter(world)
+        .collect::<Vec<_>>();
+    entities_to_despawn.extend(window_entities);
+    
+    // 收集相机实体
+    let camera_entities = world.query_filtered::<Entity, With<MainMenuCamera>>()
+        .iter(world)
+        .collect::<Vec<_>>();
+    entities_to_despawn.extend(camera_entities);
+    
+    // 收集文本实体（排除已收集的实体）
+    let text_entities = world.query_filtered::<Entity, With<Text>>()
+        .iter(world)
+        .filter(|e| !entities_to_despawn.contains(e))
+        .collect::<Vec<_>>();
+    entities_to_despawn.extend(text_entities);
+    
+    // 收集节点实体（排除已收集的实体）
+    let node_entities = world.query_filtered::<Entity, With<Node>>()
+        .iter(world)
+        .filter(|e| !entities_to_despawn.contains(e))
+        .collect::<Vec<_>>();
+    entities_to_despawn.extend(node_entities);
+    
+    // 安全地删除所有收集到的实体
+    for entity in entities_to_despawn {
+        // 检查实体是否仍然存在
+        if world.get_entity(entity).is_some() {
+            world.despawn(entity);
         }
-        commands.entity(entity).despawn();
-    }
-    
-    // 删除所有剩余的UI节点
-    for entity in node_query.iter() {
-        // 避免重复删除已经处理过的节点
-        if !commands.get_entity(entity).is_some() {
-            continue;
-        }
-        commands.entity(entity).despawn_recursive();
     }
 }
 

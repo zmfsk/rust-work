@@ -133,6 +133,7 @@ fn handle_buttons(
     let window = windows.single();
 
     if buttons.just_pressed(MouseButton::Left) {
+    
         if let Some(cursor_position) = window.cursor_position() {
             if let Some((camera, camera_transform)) = camera_query.get_single().ok() {
                 if let Some(world_position) =
