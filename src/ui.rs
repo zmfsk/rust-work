@@ -31,95 +31,95 @@ pub fn setup_main_menu(mut commands: Commands, windows: Query<&Window>) {
     // 获取窗口大小
     let window = windows.single();
     let window_width = window.width();
-    
+
     // 添加主菜单专用相机
-    commands.spawn((
-        Camera2dBundle::default(),
-        MainMenuCamera,
-    ));
+    commands.spawn((Camera2dBundle::default(), MainMenuCamera));
 
     // 添加标题
-    commands.spawn(
-        TextBundle {
-            text: Text::from_section(
-                "Gobang Game",
-                TextStyle {
-                    font_size: 60.0,
-                    color: Color::rgb(0.2, 0.2, 0.2),
-                    ..default()
-                },
-            ).with_alignment(TextAlignment::Center),
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Px(window_width / 2.0 - 150.0),
-                top: Val::Px(200.0),
+    commands.spawn(TextBundle {
+        text: Text::from_section(
+            "Gobang Game",
+            TextStyle {
+                font_size: 60.0,
+                color: Color::rgb(0.2, 0.2, 0.2),
                 ..default()
             },
+        )
+        .with_alignment(TextAlignment::Center),
+        style: Style {
+            position_type: PositionType::Absolute,
+            left: Val::Px(window_width / 2.0 - 150.0),
+            top: Val::Px(200.0),
             ..default()
-        }
-    );
-    
+        },
+        ..default()
+    });
+
     // 添加开始按钮
-    commands.spawn((
-        ButtonBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Px(window_width / 2.0 - 100.0),
-                top: Val::Px(300.0),
-                width: Val::Px(200.0),
-                height: Val::Px(65.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            background_color: Color::rgb(0.15, 0.15, 0.15).into(),
-            ..default()
-        },
-        StartButton,
-    )).with_children(|parent| {
-        parent.spawn(
-            TextBundle::from_section(
-                "Start Game",
-                TextStyle {
-                    font_size: 30.0,
-                    color: Color::WHITE,
+    commands
+        .spawn((
+            ButtonBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(window_width / 2.0 - 100.0),
+                    top: Val::Px(300.0),
+                    width: Val::Px(200.0),
+                    height: Val::Px(65.0),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
                     ..default()
                 },
-            )
-            .with_text_alignment(TextAlignment::Center),
-        );
-    });
-    
+                background_color: Color::rgb(0.15, 0.15, 0.15).into(),
+                ..default()
+            },
+            StartButton,
+        ))
+        .with_children(|parent| {
+            parent.spawn(
+                TextBundle::from_section(
+                    "Start Game",
+                    TextStyle {
+                        font_size: 30.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                )
+                .with_text_alignment(TextAlignment::Center),
+            );
+        });
+
     // 添加Usage按钮
-    commands.spawn((
-        ButtonBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Px(window_width / 2.0 - 100.0),
-                top: Val::Px(380.0),
-                width: Val::Px(200.0),
-                height: Val::Px(65.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            background_color: Color::rgb(0.15, 0.15, 0.15).into(),
-            ..default()
-        },
-        UsageButton,
-    )).with_children(|parent| {
-        parent.spawn(
-            TextBundle::from_section(
-                "How to Play",
-                TextStyle {
-                    font_size: 30.0,
-                    color: Color::WHITE,
+    commands
+        .spawn((
+            ButtonBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(window_width / 2.0 - 100.0),
+                    top: Val::Px(380.0),
+                    width: Val::Px(200.0),
+                    height: Val::Px(65.0),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
                     ..default()
                 },
-            )
-            .with_text_alignment(TextAlignment::Center),
-        );
-    });
+                background_color: Color::rgb(0.15, 0.15, 0.15).into(),
+                ..default()
+            },
+            UsageButton,
+        ))
+        .with_children(|parent| {
+            parent.spawn(
+                TextBundle::from_section(
+                    "How to Play",
+                    TextStyle {
+                        font_size: 30.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                )
+                .with_text_alignment(TextAlignment::Center),
+            );
+        });
 }
 
 // 处理开始按钮点击
@@ -153,46 +153,49 @@ pub fn handle_start_button(
 }
 
 // 清理主菜单
-pub fn cleanup_main_menu(
-    world: &mut World,
-) {
+pub fn cleanup_main_menu(world: &mut World) {
     // 使用世界直接查询和删除实体
-    
+
     // 首先收集所有需要删除的实体
     let mut entities_to_despawn = Vec::new();
-    
+
     // 收集按钮实体
-    let button_entities = world.query_filtered::<Entity, Or<(With<StartButton>, With<UsageButton>, With<CloseButton>)>>()
+    let button_entities = world
+        .query_filtered::<Entity, Or<(With<StartButton>, With<UsageButton>, With<CloseButton>)>>()
         .iter(world)
         .collect::<Vec<_>>();
     entities_to_despawn.extend(button_entities);
-    
+
     // 收集窗口实体
-    let window_entities = world.query_filtered::<Entity, With<UsageWindow>>()
+    let window_entities = world
+        .query_filtered::<Entity, With<UsageWindow>>()
         .iter(world)
         .collect::<Vec<_>>();
     entities_to_despawn.extend(window_entities);
-    
+
     // 收集相机实体
-    let camera_entities = world.query_filtered::<Entity, With<MainMenuCamera>>()
+    let camera_entities = world
+        .query_filtered::<Entity, With<MainMenuCamera>>()
         .iter(world)
         .collect::<Vec<_>>();
     entities_to_despawn.extend(camera_entities);
-    
+
     // 收集文本实体（排除已收集的实体）
-    let text_entities = world.query_filtered::<Entity, With<Text>>()
+    let text_entities = world
+        .query_filtered::<Entity, With<Text>>()
         .iter(world)
         .filter(|e| !entities_to_despawn.contains(e))
         .collect::<Vec<_>>();
     entities_to_despawn.extend(text_entities);
-    
+
     // 收集节点实体（排除已收集的实体）
-    let node_entities = world.query_filtered::<Entity, With<Node>>()
+    let node_entities = world
+        .query_filtered::<Entity, With<Node>>()
         .iter(world)
         .filter(|e| !entities_to_despawn.contains(e))
         .collect::<Vec<_>>();
     entities_to_despawn.extend(node_entities);
-    
+
     // 安全地删除所有收集到的实体
     for entity in entities_to_despawn {
         // 检查实体是否仍然存在
@@ -208,7 +211,11 @@ pub fn handle_usage_button(
     windows: Query<&Window>,
     mut button_query: Query<
         (&Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<UsageButton>, Without<CloseButton>),
+        (
+            Changed<Interaction>,
+            With<UsageButton>,
+            Without<CloseButton>,
+        ),
     >,
     usage_window_query: Query<Entity, With<UsageWindow>>,
 ) {
@@ -219,53 +226,55 @@ pub fn handle_usage_button(
 
     let window = windows.single();
     let window_width = window.width();
-    
+
     for (interaction, mut bg_color) in &mut button_query {
         match *interaction {
             Interaction::Pressed => {
                 // 按下状态 - 颜色变深
                 *bg_color = Color::rgb(0.1, 0.1, 0.1).into();
-                
+
                 // 创建说明窗口
-                commands.spawn((
-                    NodeBundle {
-                        style: Style {
-                            position_type: PositionType::Absolute,
-                            left: Val::Px(window_width / 2.0 - 250.0),
-                            top: Val::Px(150.0),
-                            width: Val::Px(500.0),
-                            height: Val::Px(400.0),
-                            flex_direction: FlexDirection::Column,
-                            align_items: AlignItems::Center,
-                            padding: UiRect::all(Val::Px(20.0)),
-                            ..default()
-                        },
-                        background_color: Color::rgb(0.9, 0.9, 0.9).into(),
-                        ..default()
-                    },
-                    UsageWindow,
-                )).with_children(|parent| {
-                    // 添加标题
-                    parent.spawn(
-                        TextBundle::from_section(
-                            "Gobang (Five in a Row) Rules",
-                            TextStyle {
-                                font_size: 24.0,
-                                color: Color::rgb(0.2, 0.2, 0.2),
+                commands
+                    .spawn((
+                        NodeBundle {
+                            style: Style {
+                                position_type: PositionType::Absolute,
+                                left: Val::Px(window_width / 2.0 - 250.0),
+                                top: Val::Px(150.0),
+                                width: Val::Px(500.0),
+                                height: Val::Px(400.0),
+                                flex_direction: FlexDirection::Column,
+                                align_items: AlignItems::Center,
+                                padding: UiRect::all(Val::Px(20.0)),
                                 ..default()
                             },
-                        )
-                        .with_style(Style {
-                            margin: UiRect::bottom(Val::Px(20.0)),
+                            background_color: Color::rgb(0.9, 0.9, 0.9).into(),
                             ..default()
-                        })
-                        .with_text_alignment(TextAlignment::Center),
-                    );
-                    
-                    // 添加说明文本
-                    parent.spawn(
-                        TextBundle::from_section(
-                            "Gobang is a traditional board game played on a 15x15 grid.\n\n\
+                        },
+                        UsageWindow,
+                    ))
+                    .with_children(|parent| {
+                        // 添加标题
+                        parent.spawn(
+                            TextBundle::from_section(
+                                "Gobang (Five in a Row) Rules",
+                                TextStyle {
+                                    font_size: 24.0,
+                                    color: Color::rgb(0.2, 0.2, 0.2),
+                                    ..default()
+                                },
+                            )
+                            .with_style(Style {
+                                margin: UiRect::bottom(Val::Px(20.0)),
+                                ..default()
+                            })
+                            .with_text_alignment(TextAlignment::Center),
+                        );
+
+                        // 添加说明文本
+                        parent.spawn(
+                            TextBundle::from_section(
+                                "Gobang is a traditional board game played on a 15x15 grid.\n\n\
                             Rules:\n\
                             1. Black plays first, followed by White.\n\
                             2. Players take turns placing stones on intersections.\n\
@@ -274,46 +283,48 @@ pub fn handle_usage_button(
                             4. In this version, you play against an AI opponent.\n\
                             5. You can switch between playing as Black or White.\n\
                             6. Use the Reset button to start a new game.",
-                            TextStyle {
-                                font_size: 18.0,
-                                color: Color::rgb(0.2, 0.2, 0.2),
-                                ..default()
-                            },
-                        )
-                        .with_style(Style {
-                            margin: UiRect::bottom(Val::Px(20.0)),
-                            ..default()
-                        }),
-                    );
-                    
-                    // 添加关闭按钮
-                    parent.spawn((
-                        ButtonBundle {
-                            style: Style {
-                                width: Val::Px(100.0),
-                                height: Val::Px(40.0),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                ..default()
-                            },
-                            background_color: Color::rgb(0.15, 0.15, 0.15).into(),
-                            ..default()
-                        },
-                        CloseButton,
-                    )).with_children(|parent| {
-                        parent.spawn(
-                            TextBundle::from_section(
-                                "Close",
                                 TextStyle {
-                                    font_size: 20.0,
-                                    color: Color::WHITE,
+                                    font_size: 18.0,
+                                    color: Color::rgb(0.2, 0.2, 0.2),
                                     ..default()
                                 },
                             )
-                            .with_text_alignment(TextAlignment::Center),
+                            .with_style(Style {
+                                margin: UiRect::bottom(Val::Px(20.0)),
+                                ..default()
+                            }),
                         );
+
+                        // 添加关闭按钮
+                        parent
+                            .spawn((
+                                ButtonBundle {
+                                    style: Style {
+                                        width: Val::Px(100.0),
+                                        height: Val::Px(40.0),
+                                        justify_content: JustifyContent::Center,
+                                        align_items: AlignItems::Center,
+                                        ..default()
+                                    },
+                                    background_color: Color::rgb(0.15, 0.15, 0.15).into(),
+                                    ..default()
+                                },
+                                CloseButton,
+                            ))
+                            .with_children(|parent| {
+                                parent.spawn(
+                                    TextBundle::from_section(
+                                        "Close",
+                                        TextStyle {
+                                            font_size: 20.0,
+                                            color: Color::WHITE,
+                                            ..default()
+                                        },
+                                    )
+                                    .with_text_alignment(TextAlignment::Center),
+                                );
+                            });
                     });
-                });
             }
             Interaction::Hovered => {
                 // 悬停状态 - 颜色变亮
@@ -341,7 +352,7 @@ pub fn handle_close_button(
             Interaction::Pressed => {
                 // 按下状态 - 颜色变深
                 *bg_color = Color::rgb(0.1, 0.1, 0.1).into();
-                
+
                 // 关闭窗口
                 for entity in usage_window_query.iter() {
                     commands.entity(entity).despawn_recursive();
@@ -357,4 +368,4 @@ pub fn handle_close_button(
             }
         }
     }
-  }
+}

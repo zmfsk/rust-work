@@ -3,7 +3,7 @@ mod board;
 mod game;
 mod game_manager;
 mod input;
-mod ui; // 添加新模块
+mod ui;
 
 use agent::SmartAgent;
 use bevy::prelude::*;
@@ -12,20 +12,24 @@ use board::{ResetButton, SwitchButton, SwitchButtonText, setup_board};
 use game::{CELL_SIZE, GRID_SIZE, GameState, Stone, StoneComponent};
 use game_manager::check_victory;
 use input::place_stone;
-use ui::{AppState, StartButton, UsageButton, CloseButton, UsageWindow, setup_main_menu, handle_start_button, handle_usage_button, handle_close_button, cleanup_main_menu}; // 导入UI组件和系统
+use ui::{
+    AppState, CloseButton, StartButton, UsageButton, UsageWindow, cleanup_main_menu,
+    handle_close_button, handle_start_button, handle_usage_button, setup_main_menu,
+}; // 导入UI组件和系统
 
 const BOARD_OFFSET: f32 = -200.0;
+const AI_DIFFICULTY: u32 = 2; // 设置搜索深度，目前仅支持1、2，>=3会卡死
 
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.9, 0.8, 0.6)))
         .insert_resource(GameState::new())
-        .insert_resource(SmartAgent::new(Stone::White)) // 默认AI使用白子
+        .insert_resource(SmartAgent::new(Stone::White, AI_DIFFICULTY)) // 默认AI使用白子
         .add_state::<AppState>() // 添加应用状态
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "五子棋".into(),
-                resolution: (1200.0,800.0).into(),
+                resolution: (1200.0, 800.0).into(),
                 ..default()
             }),
             ..default()
@@ -33,29 +37,67 @@ fn main() {
         .add_plugins(ShapePlugin)
         // 主菜单系统
         .add_systems(Startup, setup_main_menu) // 让UI模块管理相机
-        .add_systems(Update, handle_start_button.run_if(in_state(AppState::MainMenu)))
-        .add_systems(Update, handle_usage_button.run_if(in_state(AppState::MainMenu)))
-        .add_systems(Update, handle_close_button.run_if(in_state(AppState::MainMenu)))
+        .add_systems(
+            Update,
+            handle_start_button.run_if(in_state(AppState::MainMenu)),
+        )
+        .add_systems(
+            Update,
+            handle_usage_button.run_if(in_state(AppState::MainMenu)),
+        )
+        .add_systems(
+            Update,
+            handle_close_button.run_if(in_state(AppState::MainMenu)),
+        )
         .add_systems(OnExit(AppState::MainMenu), cleanup_main_menu)
         // 游戏系统
         .add_systems(OnEnter(AppState::InGame), setup_board)
-        .add_systems(Update, handle_buttons.before(place_stone).run_if(in_state(AppState::InGame)))
-        .add_systems(Update, place_stone.run_if(in_state(AppState::InGame)))
-        .add_systems(Update, check_victory_system.after(place_stone).run_if(in_state(AppState::InGame)))
-        .add_systems(Update, ai_move.after(check_victory_system).run_if(in_state(AppState::InGame)))
         .add_systems(
             Update,
-            update_switch_button_text.after(check_victory_system).run_if(in_state(AppState::InGame)),
+            handle_buttons
+                .before(place_stone)
+                .run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(Update, place_stone.run_if(in_state(AppState::InGame)))
+        .add_systems(
+            Update,
+            check_victory_system
+                .after(place_stone)
+                .run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(
+            Update,
+            ai_move
+                .after(check_victory_system)
+                .run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(
+            Update,
+            update_switch_button_text
+                .after(check_victory_system)
+                .run_if(in_state(AppState::InGame)),
         )
         .run();
 }
 
-
 /// 系统：检查胜负
 fn check_victory_system(mut game_state: ResMut<GameState>) {
+    // Only check if game is not already over
+    if game_state.is_game_over {
+        return;
+    }
+
     if let Some(winner) = check_victory(&game_state) {
-        println!("游戏结束！！获胜者是: {:?}", winner);
+        println!("Game Over! Winner: {:?}", winner);
         game_state.is_game_over = true;
+        game_state.winner = Some(winner); // Store the winner
+    } else {
+        // Check for draw (board full, no winner)
+        if game_state.get_valid_moves().is_empty() {
+            println!("Game Over! It's a Draw!");
+            game_state.is_game_over = true;
+            game_state.winner = None; // Explicitly mark no winner for draw
+        }
     }
 }
 
@@ -124,43 +166,45 @@ fn handle_buttons(
     windows: Query<&Window>,
     buttons: Res<Input<MouseButton>>,
     mut game_state: ResMut<GameState>,
-    mut ai: ResMut<SmartAgent>,
+    mut ai: ResMut<SmartAgent>, // Now mutable to change settings
     camera_query: Query<(&Camera, &GlobalTransform)>,
     reset_button_query: Query<(&ResetButton, &GlobalTransform)>,
     switch_button_query: Query<(&SwitchButton, &GlobalTransform)>,
     stone_query: Query<Entity, With<StoneComponent>>,
+    // Example: Add UI elements later to change ai.set_depth(new_depth)
 ) {
     let window = windows.single();
 
     if buttons.just_pressed(MouseButton::Left) {
-    
         if let Some(cursor_position) = window.cursor_position() {
             if let Some((camera, camera_transform)) = camera_query.get_single().ok() {
                 if let Some(world_position) =
                     camera.viewport_to_world_2d(camera_transform, cursor_position)
                 {
-                    // 检查重置按钮点击
+                    // Check reset button click
                     for (_, transform) in reset_button_query.iter() {
                         let button_pos = transform.translation();
+                        // Adjust button size check if needed
                         let button_rect = Rect::new(
-                            button_pos.x - 75.0,
-                            button_pos.y - 30.0,
+                            button_pos.x - 75.0, // half width
+                            button_pos.y - 30.0, // half height
                             button_pos.x + 75.0,
                             button_pos.y + 30.0,
                         );
 
                         if button_rect.contains(world_position) {
-                            // 重置游戏状态
+                            // Reset game state
                             game_state.reset();
-                            // 清除所有棋子
+                            // Clear all stones
                             for entity in stone_query.iter() {
-                                commands.entity(entity).despawn();
+                                commands.entity(entity).despawn_recursive(); // Use despawn_recursive
                             }
-                            return;
+                            println!("Game Reset!"); // Feedback
+                            return; // Processed button click
                         }
                     }
 
-                    // 检查切换按钮点击
+                    // Check switch button click
                     for (_, transform) in switch_button_query.iter() {
                         let button_pos = transform.translation();
                         let button_rect = Rect::new(
@@ -171,23 +215,19 @@ fn handle_buttons(
                         );
 
                         if button_rect.contains(world_position) {
-                            // 切换AI的棋子颜色
+                            // Switch AI's stone color
                             let current_stone = ai.get_stone();
-                            let new_stone = match current_stone {
-                                Stone::Black => Stone::White,
-                                Stone::White => Stone::Black,
-                            };
-                            ai.set_stone(new_stone);
+                            ai.set_stone(current_stone.opponent()); // Use opponent() helper
 
-                            // 重置游戏状态
+                            // Reset game state
                             game_state.reset();
 
-                            // 清除所有棋子
+                            // Clear all stones
                             for entity in stone_query.iter() {
-                                commands.entity(entity).despawn();
+                                commands.entity(entity).despawn_recursive();
                             }
-
-                            return;
+                            println!("AI switched to {:?}", ai.get_stone()); // Feedback
+                            return; // Processed button click
                         }
                     }
                 }
