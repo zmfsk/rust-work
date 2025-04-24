@@ -62,10 +62,6 @@ pub fn place_stone(
 
                         game_state.board[row][col] = Some(game_state.current_turn);
 
-                        // 检查胜负
-                        if let Some(winner) = check_victory(&game_state) {
-                            println!("游戏结束！获胜者是: {:?}", winner);
-                        }
 
                         game_state.current_turn = match game_state.current_turn {
                             Stone::Black => Stone::White,

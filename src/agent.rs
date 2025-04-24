@@ -183,8 +183,8 @@ impl SmartAgent {
         let directions = [(0, 1), (1, 0), (1, 1), (1, -1)]; // (dr, dc)
 
         // 遍历棋盘上的每个点，作为潜在棋型的起点
-        for r in 0..GRID_SIZE {
-            for c in 0..GRID_SIZE {
+        for r in 0..GRID_SIZE+1 {
+            for c in 0..GRID_SIZE+1 {
                 // 只需评估从有棋子的位置开始的线
                 // if game_state.board[r][c].is_none() { continue; }
 
@@ -199,19 +199,19 @@ impl SmartAgent {
         // 让 AI 稍微倾向于占据中心位置
         let mut positional_score = 0;
         if POSITIONAL_WEIGHT > 0 {
-            let center = GRID_SIZE / 2;
-            for r in 0..GRID_SIZE {
-                for c in 0..GRID_SIZE {
+            let center = (GRID_SIZE+1) / 2;
+            for r in 0..GRID_SIZE+1 {
+                for c in 0..GRID_SIZE+1 {
                     if game_state.board[r][c] == Some(self.stone) {
                         let dist =
                             (r as i32 - center as i32).abs() + (c as i32 - center as i32).abs();
                         positional_score +=
-                            (POSITIONAL_WEIGHT * (GRID_SIZE as i32 / 2) - dist).max(0); // 离中心越近，加分越多
+                            (POSITIONAL_WEIGHT * ((GRID_SIZE+1) as i32 / 2) - dist).max(0); // 离中心越近，加分越多
                     } else if game_state.board[r][c] == Some(opponent_stone) {
                         let dist =
                             (r as i32 - center as i32).abs() + (c as i32 - center as i32).abs();
                         positional_score -=
-                            (POSITIONAL_WEIGHT * (GRID_SIZE as i32 / 2) - dist).max(0); // 对手占中心则减分
+                            (POSITIONAL_WEIGHT * ((GRID_SIZE+1) as i32 / 2) - dist).max(0); // 对手占中心则减分
                     }
                 }
             }
@@ -247,22 +247,22 @@ impl SmartAgent {
         let bc = c as isize - dc; // Backward col
         // 如果出界或是空格，则认为是开放的
         if !(br >= 0
-            && br < GRID_SIZE as isize
+            && br < (GRID_SIZE+1) as isize
             && bc >= 0
-            && bc < GRID_SIZE as isize
+            && bc < (GRID_SIZE+1) as isize
             && game_state.board[br as usize][bc as usize] == Some(opponent_stone))
         {
             open_ends += 1;
         }
 
         // --- 检查 "前面" 的连续棋子和是否开放 ---
-        for i in 0..GRID_SIZE {
+        for i in 0..GRID_SIZE+1 {
             // 检查从起点开始的棋子 (use usize loop)
             let nr = r as isize + (i as isize) * dr; // Next row
             let nc = c as isize + (i as isize) * dc; // Next col
 
             // 检查边界
-            if nr < 0 || nr >= GRID_SIZE as isize || nc < 0 || nc >= GRID_SIZE as isize {
+            if nr < 0 || nr >= (GRID_SIZE+1) as isize || nc < 0 || nc >= (GRID_SIZE+1) as isize {
                 // 到达边界，视为非对手阻挡
                 // 只有在连续棋子中断时才增加开放端
                 //if i > 0 { // 确保不是起点本身就在边界

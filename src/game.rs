@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-pub const GRID_SIZE: usize = 15; // 棋盘大小
+pub const GRID_SIZE: usize = 14; // 棋盘大小
 pub const CELL_SIZE: f32 = 40.0; // 每个单元格的大小
 
 #[derive(Resource, Clone)]
@@ -29,8 +29,8 @@ impl GameState {
 
     pub fn get_valid_moves(&self) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
-        for row in 0..GRID_SIZE {
-            for col in 0..GRID_SIZE {
+        for row in 0..GRID_SIZE+1 {
+            for col in 0..GRID_SIZE+1 {
                 if self.board[row][col].is_none() {
                     valid_moves.push((row, col));
                 }
@@ -40,7 +40,7 @@ impl GameState {
     }
 
     pub fn make_move_simulated(&self, row: usize, col: usize, stone: Stone) -> Option<GameState> {
-        if row >= GRID_SIZE || col >= GRID_SIZE || self.board[row][col].is_some() {
+        if row > GRID_SIZE || col > GRID_SIZE || self.board[row][col].is_some() {
             return None; // Invalid move
         }
         let mut next_state = self.clone();

@@ -2,8 +2,8 @@ use crate::game::{GRID_SIZE, GameState, Stone};
 
 /// 检查是否有玩家获胜
 pub fn check_victory(game_state: &GameState) -> Option<Stone> {
-    for row in 0..GRID_SIZE {
-        for col in 0..GRID_SIZE {
+    for row in 0..GRID_SIZE+1 {
+        for col in 0..GRID_SIZE+1 {
             if let Some(stone) = game_state.board[row][col] {
                 // 检查四个方向：水平、垂直、左斜、右斜
                 if check_direction(&game_state.board, row, col, 1, 0, stone) // 水平
@@ -36,9 +36,9 @@ fn check_direction(
         let new_col = col as isize + i * delta_col;
 
         if new_row < 0
-            || new_row >= GRID_SIZE as isize
+            || new_row > GRID_SIZE as isize
             || new_col < 0
-            || new_col >= GRID_SIZE as isize
+            || new_col > GRID_SIZE as isize
         {
             return false;
         }
