@@ -11,10 +11,20 @@ pub fn place_stone(
     buttons: Res<Input<MouseButton>>,
     mut game_state: ResMut<GameState>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
+    ui_interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>)>,
 ) {
     let window = windows.single();
 
     if game_state.is_game_over {
+        return;
+    }
+
+    // 检查是否有UI按钮正在被交互，如果有则不处理落子
+    let ui_clicked = ui_interaction_query
+        .iter()
+        .any(|interaction| *interaction == Interaction::Pressed);
+    
+    if ui_clicked {
         return;
     }
 

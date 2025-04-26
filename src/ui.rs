@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::game::{GameState, Stone, StoneComponent};
 
 // 应用状态枚举
 #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
@@ -278,8 +279,7 @@ pub fn handle_usage_button(
                             Rules:\n\
                             1. Black plays first, followed by White.\n\
                             2. Players take turns placing stones on intersections.\n\
-                            3. The first player to form an unbroken line of five stones\n   \
-                               horizontally, vertically, or diagonally wins.\n\
+                            3. The first player to form an unbroken line of five stones horizontally, vertically, or diagonally wins.\n\
                             4. In this version, you play against an AI opponent.\n\
                             5. You can switch between playing as Black or White.\n\
                             6. Use the Reset button to start a new game.",
@@ -355,6 +355,201 @@ pub fn handle_close_button(
 
                 // 关闭窗口
                 for entity in usage_window_query.iter() {
+                    commands.entity(entity).despawn_recursive();
+                }
+            }
+            Interaction::Hovered => {
+                // 悬停状态 - 颜色变亮
+                *bg_color = Color::rgb(0.25, 0.25, 0.25).into();
+            }
+            Interaction::None => {
+                // 普通状态 - 恢复默认颜色
+                *bg_color = Color::rgb(0.15, 0.15, 0.15).into();
+            }
+        }
+    }
+}
+
+// 添加胜利窗口相关组件
+#[derive(Component)]
+pub struct VictoryWindow;
+
+#[derive(Component)]
+pub struct VictoryCloseButton;
+
+#[derive(Component)]
+pub struct PlayAgainButton;
+
+// 显示胜利窗口
+pub fn show_victory_window(
+    mut commands: Commands,
+    windows: Query<&Window>,
+    game_state: Res<GameState>,
+    victory_window_query: Query<Entity, With<VictoryWindow>>,
+) {
+    // 如果游戏未结束或已经有窗口，则不创建
+    if !game_state.is_game_over || !victory_window_query.is_empty() {
+        return;
+    }
+
+    let window = windows.single();
+    let window_width = window.width();
+
+    // 获取胜利者信息
+    let victory_text = match game_state.winner {
+        Some(Stone::Black) => "Black Wins!",
+        Some(Stone::White) => "White Wins!",
+        None => "It's a Draw!",
+    };
+
+    // 创建胜利窗口 - 调整位置使其靠右
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(window_width / 2.0 + 100.0), // 向右移动
+                    top: Val::Px(300.0),
+                    width: Val::Px(300.0),
+                    height: Val::Px(200.0),
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    padding: UiRect::all(Val::Px(20.0)),
+                    ..default()
+                },
+                background_color: Color::rgb(0.9, 0.9, 0.9).into(),
+                z_index: ZIndex::Global(10), // 确保显示在最上层
+                ..default()
+            },
+            VictoryWindow,
+        ))
+        .with_children(|parent| {
+            // 添加标题
+            parent.spawn(
+                TextBundle::from_section(
+                    "Game Over",
+                    TextStyle {
+                        font_size: 28.0,
+                        color: Color::rgb(0.2, 0.2, 0.2),
+                        ..default()
+                    },
+                )
+                .with_style(Style {
+                    margin: UiRect::bottom(Val::Px(20.0)),
+                    ..default()
+                })
+                .with_text_alignment(TextAlignment::Center),
+            );
+
+            // 添加胜利者文本
+            parent.spawn(
+                TextBundle::from_section(
+                    victory_text,
+                    TextStyle {
+                        font_size: 24.0,
+                        color: Color::rgb(0.2, 0.2, 0.2),
+                        ..default()
+                    },
+                )
+                .with_style(Style {
+                    margin: UiRect::bottom(Val::Px(30.0)),
+                    ..default()
+                })
+                .with_text_alignment(TextAlignment::Center),
+            );
+
+            // 添加"再来一局"按钮
+            parent
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            width: Val::Px(120.0),
+                            height: Val::Px(40.0),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: Color::rgb(0.15, 0.15, 0.15).into(),
+                        ..default()
+                    },
+                    PlayAgainButton,
+                ))
+                .with_children(|parent| {
+                    parent.spawn(
+                        TextBundle::from_section(
+                            "Play Again",
+                            TextStyle {
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                                ..default()
+                            },
+                        )
+                        .with_text_alignment(TextAlignment::Center),
+                    );
+                });
+        });
+}
+
+// 处理胜利窗口关闭按钮点击
+pub fn handle_victory_close_button(
+    mut commands: Commands,
+    mut button_query: Query<
+        (&Interaction, &mut BackgroundColor),
+        (Changed<Interaction>, With<VictoryCloseButton>),
+    >,
+    victory_window_query: Query<Entity, With<VictoryWindow>>,
+) {
+    for (interaction, mut bg_color) in &mut button_query {
+        match *interaction {
+            Interaction::Pressed => {
+                // 按下状态 - 颜色变深
+                *bg_color = Color::rgb(0.1, 0.1, 0.1).into();
+
+                // 关闭胜利窗口
+                for entity in victory_window_query.iter() {
+                    commands.entity(entity).despawn_recursive();
+                }
+            }
+            Interaction::Hovered => {
+                // 悬停状态 - 颜色变亮
+                *bg_color = Color::rgb(0.25, 0.25, 0.25).into();
+            }
+            Interaction::None => {
+                // 普通状态 - 恢复默认颜色
+                *bg_color = Color::rgb(0.15, 0.15, 0.15).into();
+            }
+        }
+    }
+}
+
+// 处理"再来一局"按钮点击
+pub fn handle_play_again_button(
+    mut commands: Commands,
+    mut button_query: Query<
+        (&Interaction, &mut BackgroundColor),
+        (Changed<Interaction>, With<PlayAgainButton>),
+    >,
+    victory_window_query: Query<Entity, With<VictoryWindow>>,
+    mut game_state: ResMut<GameState>,
+    stone_query: Query<Entity, With<StoneComponent>>,
+) {
+    for (interaction, mut bg_color) in &mut button_query {
+        match *interaction {
+            Interaction::Pressed => {
+                // 按下状态 - 颜色变深
+                *bg_color = Color::rgb(0.1, 0.1, 0.1).into();
+
+                // 关闭胜利窗口
+                for entity in victory_window_query.iter() {
+                    commands.entity(entity).despawn_recursive();
+                }
+                
+                // 重置游戏状态
+                game_state.reset();
+                
+                // 清除所有棋子
+                for entity in stone_query.iter() {
                     commands.entity(entity).despawn_recursive();
                 }
             }

@@ -45,7 +45,7 @@ pub fn setup_board(mut commands: Commands) {
         SpriteBundle {
             sprite: Sprite {
                 color: Color::rgb(0.8, 0.8, 0.8),
-                custom_size: Some(Vec2::new(150.0, 60.0)),
+                custom_size: Some(Vec2::new(200.0, 60.0)),
                 ..default()
             },
             transform: Transform::from_xyz(button_x, reset_button_y, 1.0),
@@ -74,7 +74,7 @@ pub fn setup_board(mut commands: Commands) {
         SpriteBundle {
             sprite: Sprite {
                 color: Color::rgb(0.8, 0.8, 0.8),
-                custom_size: Some(Vec2::new(150.0, 60.0)),
+                custom_size: Some(Vec2::new(200.0, 60.0)),
                 ..default()
             },
             transform: Transform::from_xyz(button_x, switch_button_y, 1.0),

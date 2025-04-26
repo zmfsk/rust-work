@@ -13,13 +13,18 @@ use game::{CELL_SIZE, GRID_SIZE, GameState, Stone, StoneComponent};
 use game_manager::check_victory;
 use input::place_stone;
 use ui::{
-    AppState, CloseButton, StartButton, UsageButton, UsageWindow, cleanup_main_menu,
-    handle_close_button, handle_start_button, handle_usage_button, setup_main_menu,
+    AppState, CloseButton, StartButton, UsageButton, UsageWindow, VictoryWindow, VictoryCloseButton,
+    PlayAgainButton, cleanup_main_menu, handle_close_button, handle_start_button, handle_usage_button, 
+    handle_victory_close_button, handle_play_again_button, setup_main_menu, show_victory_window,
 }; // 导入UI组件和系统
 
 const BOARD_OFFSET: f32 = -200.0;
 const AI_DIFFICULTY: u32 = 2; // 设置搜索深度，目前仅支持1、2，>=3会卡死
 
+// 修改导入部分
+
+
+// 在 main 函数中添加系统
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.9, 0.8, 0.6)))
@@ -75,6 +80,23 @@ fn main() {
             Update,
             update_switch_button_text
                 .after(check_victory_system)
+                .run_if(in_state(AppState::InGame)),
+        )
+        // 游戏系统部分添加胜利窗口相关系统
+        .add_systems(
+            Update,
+            show_victory_window
+                .after(check_victory_system)
+                .run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(
+            Update,
+            handle_victory_close_button
+                .run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(
+            Update,
+            handle_play_again_button
                 .run_if(in_state(AppState::InGame)),
         )
         .run();
