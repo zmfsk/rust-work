@@ -23,7 +23,7 @@ pub fn place_stone(
     let ui_clicked = ui_interaction_query
         .iter()
         .any(|interaction| *interaction == Interaction::Pressed);
-    
+
     if ui_clicked {
         return;
     }
@@ -71,7 +71,6 @@ pub fn place_stone(
                         ));
 
                         game_state.board[row][col] = Some(game_state.current_turn);
-
 
                         game_state.current_turn = match game_state.current_turn {
                             Stone::Black => Stone::White,

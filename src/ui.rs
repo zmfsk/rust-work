@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::game::{GameState, Stone, StoneComponent};
+use bevy::prelude::*;
 
 // 应用状态枚举
 #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
@@ -544,10 +544,10 @@ pub fn handle_play_again_button(
                 for entity in victory_window_query.iter() {
                     commands.entity(entity).despawn_recursive();
                 }
-                
+
                 // 重置游戏状态
                 game_state.reset();
-                
+
                 // 清除所有棋子
                 for entity in stone_query.iter() {
                     commands.entity(entity).despawn_recursive();
