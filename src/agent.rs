@@ -541,8 +541,10 @@ impl SmartAgent {
 
     /// 设置 AI 的搜索深度
     pub fn set_depth(&mut self, depth: u32) {
-        // 确保深度至少为 1
         self.search_depth = depth.max(1);
-        //println!("AI 搜索深度设置为: {}", self.search_depth); // Debug
+    }
+
+    pub fn get_difficulty(&self) -> u32 {
+        self.search_depth
     }
 }

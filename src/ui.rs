@@ -1,5 +1,11 @@
 use crate::game::{GameState, Stone, StoneComponent};
+use crate::agent::SmartAgent; // Add this import for SmartAgent
 use bevy::prelude::*;
+
+// Add these constants at the top of the file
+const BOARD_OFFSET: f32 = -200.0;
+const GRID_SIZE: usize = 14; // Make sure this matches the value in your game.rs
+const CELL_SIZE: f32 = 40.0; // Make sure this matches the value in your game.rs
 
 // 应用状态枚举
 #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
@@ -561,6 +567,256 @@ pub fn handle_play_again_button(
                 // 普通状态 - 恢复默认颜色
                 *bg_color = Color::rgb(0.15, 0.15, 0.15).into();
             }
+        }
+    }
+}
+
+// 添加难度选择相关组件
+#[derive(Component)]
+pub struct DifficultySelector;
+
+#[derive(Component)]
+pub struct DifficultyDropdown {
+    pub is_open: bool,
+}
+
+#[derive(Component)]
+pub struct DifficultyOption {
+    pub level: u32,
+    pub label: String,
+}
+
+// 创建难度选择下拉菜单
+pub fn setup_difficulty_selector(mut commands: Commands, ai: Res<SmartAgent>) {
+    // 难度按钮位置
+    let button_x = BOARD_OFFSET + (GRID_SIZE as f32 * CELL_SIZE) + 100.0;
+    let button_y = 50.0;
+    
+    // 获取当前难度
+    let current_level = ai.get_difficulty();
+    let difficulty_label = match current_level {
+        1 => "Easy",
+        3 => "Medium",
+        2 => "Hard",
+        _ => "Medium",
+    };
+    
+    // 创建难度选择器按钮
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(button_x),
+                    top: Val::Px(button_y),
+                    width: Val::Px(150.0),
+                    height: Val::Px(40.0),
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                ..default()
+            },
+            DifficultySelector,
+        ))
+        .with_children(|parent| {
+            // 主按钮
+            parent
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            width: Val::Percent(100.0),
+                            height: Val::Px(40.0),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: Color::rgb(0.3, 0.3, 0.3).into(),
+                        ..default()
+                    },
+                    DifficultyDropdown { is_open: false },
+                ))
+                .with_children(|parent| {
+                    parent.spawn(
+                        TextBundle::from_section(
+                            format!("Difficulty: {} ", difficulty_label),
+                            TextStyle {
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                                ..default()
+                            },
+                        )
+                        .with_text_alignment(TextAlignment::Center),
+                    );
+                });
+        });
+}
+
+// 处理难度下拉菜单点击
+pub fn handle_difficulty_dropdown(
+    mut commands: Commands,
+    mut dropdown_query: Query<(Entity, &mut DifficultyDropdown, &mut BackgroundColor, &Children), (Changed<Interaction>, With<Button>)>,
+    mut text_query: Query<&mut Text>,
+    interaction_query: Query<&Interaction, With<Button>>,
+    ai: Res<SmartAgent>,
+) {
+    for (entity, mut dropdown, mut bg_color, children) in dropdown_query.iter_mut() {
+        let interaction = interaction_query.get(entity).unwrap_or(&Interaction::None);
+        
+        match *interaction {
+            Interaction::Pressed => {
+                // 切换下拉菜单状态
+                dropdown.is_open = !dropdown.is_open;
+                
+                // 更新按钮颜色
+                *bg_color = if dropdown.is_open {
+                    Color::rgb(0.4, 0.4, 0.4).into()
+                } else {
+                    Color::rgb(0.3, 0.3, 0.3).into()
+                };
+                
+                // 如果打开下拉菜单，创建选项
+                if dropdown.is_open {
+                    // 获取按钮文本
+                    let text_entity = children.iter().next().unwrap();
+                    if let Ok(mut text) = text_query.get_mut(*text_entity) {
+                        // 获取当前难度并更改箭头方向
+                        let current_level =ai.get_difficulty();
+                        let difficulty_label = match current_level {
+                            1 => "Easy",
+                            3 => "Medium",
+                            2 => "Hard",
+                            _ => "Medium",
+                        };
+                        text.sections[0].value = format!("Difficulty: {} ", difficulty_label);
+                    }
+                    
+                    // 创建下拉选项
+                    commands.entity(entity).with_children(|parent| {
+                        // 创建选项容器
+                        parent
+                            .spawn(NodeBundle {
+                                style: Style {
+                                    position_type: PositionType::Absolute,
+                                    top: Val::Px(40.0),
+                                    width: Val::Percent(100.0),
+                                    flex_direction: FlexDirection::Column,
+                                    ..default()
+                                },
+                                background_color: Color::rgb(0.2, 0.2, 0.2).into(),
+                                z_index: ZIndex::Global(100),
+                                ..default()
+                            })
+                            .with_children(|parent| {
+                                // 添加三个难度选项
+                                let options = [
+                                    ("Easy", 1, Color::rgb(0.2, 0.6, 0.2)),
+                                    ("Medium", 3, Color::rgb(0.6, 0.6, 0.2)),
+                                    ("Hard", 2, Color::rgb(0.6, 0.2, 0.2)),
+                                ];
+                                
+                                for (label, level, color) in options {
+                                    parent
+                                        .spawn((
+                                            ButtonBundle {
+                                                style: Style {
+                                                    width: Val::Percent(100.0),
+                                                    height: Val::Px(30.0),
+                                                    justify_content: JustifyContent::Center,
+                                                    align_items: AlignItems::Center,
+                                                    ..default()
+                                                },
+                                                background_color: color.with_a(0.7).into(),
+                                                ..default()
+                                            },
+                                            DifficultyOption {
+                                                level,
+                                                label: label.to_string(),
+                                            },
+                                        ))
+                                        .with_children(|parent| {
+                                            parent.spawn(
+                                                TextBundle::from_section(
+                                                    label,
+                                                    TextStyle {
+                                                        font_size: 18.0,
+                                                        color: Color::WHITE,
+                                                        ..default()
+                                                    },
+                                                )
+                                                .with_text_alignment(TextAlignment::Center),
+                                            );
+                                        });
+                                }
+                            });
+                    });
+                } else {
+                    // 关闭下拉菜单，移除选项
+                    let text_entity = children.iter().next().unwrap();
+                    if let Ok(mut text) = text_query.get_mut(*text_entity) {
+                        // 显示当前选择的难度
+                        let current_level = ai.get_difficulty();
+                        let difficulty_label = match current_level {
+                            1 => "Easy",
+                            3 => "Medium",
+                            2 => "Hard",
+                            _ => "Medium",
+                        };
+                        text.sections[0].value = format!("Difficulty: {} ", difficulty_label);
+                    }
+                    
+                    // 移除所有子元素（除了第一个文本元素）
+                    for &child in children.iter().skip(1) {
+                        commands.entity(child).despawn_recursive();
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                // 悬停效果
+                *bg_color = Color::rgb(0.35, 0.35, 0.35).into();
+            }
+            Interaction::None => {
+                // 恢复默认颜色
+                if !dropdown.is_open {
+                    *bg_color = Color::rgb(0.3, 0.3, 0.3).into();
+                }
+            }
+        }
+    }
+}
+
+// 处理难度选项点击
+pub fn handle_difficulty_options(
+    mut commands: Commands,
+    mut option_query: Query<(&Interaction, &DifficultyOption, &Parent), (Changed<Interaction>, With<Button>)>,
+    dropdown_query: Query<(Entity, &Children), With<DifficultyDropdown>>,
+    mut text_query: Query<&mut Text>,
+    mut ai: ResMut<SmartAgent>,
+) {
+    for (interaction, option, parent) in option_query.iter_mut() {
+        if *interaction == Interaction::Pressed {
+            // 设置AI难度
+            ai.set_depth(option.level);
+            
+            // 更新下拉菜单文本并关闭菜单
+            for (dropdown_entity, children) in dropdown_query.iter() {
+                // 更新按钮文本
+                if let Some(&text_entity) = children.iter().next() {
+                    if let Ok(mut text) = text_query.get_mut(text_entity) {
+                        text.sections[0].value = format!("Difficulty: {} ", option.label);
+                    }
+                }
+                
+                // 移除所有子元素（除了第一个文本元素）
+                for &child in children.iter().skip(1) {
+                    commands.entity(child).despawn_recursive();
+                }
+                
+                // 更新下拉菜单状态
+                commands.entity(dropdown_entity).insert(DifficultyDropdown { is_open: false });
+            }
+            
+            println!("AI difficulty set to: {}", option.level);
         }
     }
 }
