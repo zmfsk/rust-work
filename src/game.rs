@@ -3,6 +3,53 @@ use bevy::prelude::*;
 pub const GRID_SIZE: usize = 14; // 棋盘大小
 pub const CELL_SIZE: f32 = 40.0; // 每个单元格的大小
 
+#[derive(Resource)]
+pub struct PlayerScore {
+    pub total_loss: i32,
+    pub move_count: u32,
+    pub current_rating: u32, // 0-100 scale
+}
+
+impl PlayerScore {
+    pub fn new() -> Self {
+        PlayerScore {
+            total_loss: 0,
+            move_count: 0,
+            current_rating: 100, // Start with 100
+        }
+    }
+
+    /// Adds a move's loss and updates the rating.
+    pub fn add_move(&mut self, loss: i32) {
+        self.total_loss += loss.max(0); // Ensure loss isn't negative
+        self.move_count += 1;
+
+        let avg_loss = if self.move_count > 0 {
+            self.total_loss / self.move_count as i32
+        } else {
+            0
+        };
+
+        // Cap loss at 10000 (adjust as needed based on score weights)
+        let capped_loss = avg_loss.max(0).min(10000);
+        // Convert average loss to a 0-100 rating
+        self.current_rating = ((10000 - capped_loss) / 100) as u32;
+
+        println!(
+            "Move #{}: Loss = {}, Avg Loss = {}, Rating = {}",
+            self.move_count, loss, avg_loss, self.current_rating
+        );
+    }
+
+    /// Resets the score for a new game.
+    pub fn reset(&mut self) {
+        self.total_loss = 0;
+        self.move_count = 0;
+        self.current_rating = 100;
+        println!("Player score reset.");
+    }
+}
+
 #[derive(Resource, Clone)]
 pub struct GameState {
     pub board: [[Option<Stone>; GRID_SIZE + 1]; GRID_SIZE + 1], // 棋盘

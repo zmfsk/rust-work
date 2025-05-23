@@ -9,15 +9,15 @@ use agent::SmartAgent;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use board::{ResetButton, SwitchButton, SwitchButtonText, setup_board};
-use game::{CELL_SIZE, GRID_SIZE, GameState, Stone, StoneComponent};
+use game::{CELL_SIZE, GRID_SIZE, GameState, PlayerScore, Stone, StoneComponent};
 use game_manager::check_victory;
 use input::place_stone;
 use ui::{
     AppState, CloseButton, DifficultyDropdown, DifficultyOption, DifficultySelector,
-    PlayAgainButton, StartButton, UsageButton, UsageWindow, VictoryWindow,
-    cleanup_main_menu, handle_close_button, handle_difficulty_dropdown, 
-    handle_difficulty_options, handle_play_again_button, handle_start_button, 
-    handle_usage_button, setup_difficulty_selector, setup_main_menu, show_victory_window,handle_victory_close_button
+    PlayAgainButton, StartButton, UsageButton, UsageWindow, VictoryWindow, cleanup_main_menu,
+    handle_close_button, handle_difficulty_dropdown, handle_difficulty_options,
+    handle_play_again_button, handle_start_button, handle_usage_button,
+    handle_victory_close_button, setup_difficulty_selector, setup_main_menu, show_victory_window,
 }; // 导入UI组件和系统
 
 const BOARD_OFFSET: f32 = -200.0;
@@ -29,6 +29,7 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.9, 0.8, 0.6)))
         .insert_resource(GameState::new())
+        .insert_resource(PlayerScore::new()) // 添加玩家评分资源
         .insert_resource(SmartAgent::new(Stone::White, AI_DIFFICULTY)) // 默认AI使用白子
         .add_state::<AppState>() // 添加应用状态
         .add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -196,6 +197,7 @@ fn handle_buttons(
     buttons: Res<Input<MouseButton>>,
     mut game_state: ResMut<GameState>,
     mut ai: ResMut<SmartAgent>, // Now mutable to change settings
+    mut player_score: ResMut<PlayerScore>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     reset_button_query: Query<(&ResetButton, &GlobalTransform)>,
     switch_button_query: Query<(&SwitchButton, &GlobalTransform)>,
@@ -224,6 +226,7 @@ fn handle_buttons(
                         if button_rect.contains(world_position) {
                             // Reset game state
                             game_state.reset();
+                            player_score.reset(); // Reset player score
                             // Clear all stones
                             for entity in stone_query.iter() {
                                 commands.entity(entity).despawn_recursive(); // Use despawn_recursive
@@ -250,7 +253,7 @@ fn handle_buttons(
 
                             // Reset game state
                             game_state.reset();
-
+                            player_score.reset(); // Reset player score
                             // Clear all stones
                             for entity in stone_query.iter() {
                                 commands.entity(entity).despawn_recursive();

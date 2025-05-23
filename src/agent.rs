@@ -32,103 +32,105 @@ impl SmartAgent {
         }
     }
 
-    pub fn make_move(&self, game_state: &GameState) -> Option<(usize, usize)> {
+    /// 为当前 AI 的棋子找到最佳落子及其 Minimax 分数。
+    pub fn find_best_move_and_score(
+        &self,
+        game_state: &GameState,
+    ) -> Option<((usize, usize), i32)> {
         if game_state.is_game_over {
             return None;
         }
 
-        // 获取相关联的有效落子位置（剪枝）
         let relevant_moves = self.get_relevant_moves(game_state);
         if relevant_moves.is_empty() {
-            // 回退策略：如果没有相关落子位置，检查是否还有任何有效落子（可能是和棋或棋盘满了）
-            let all_valid_moves = game_state.get_valid_moves();
-            if all_valid_moves.is_empty() {
-                return None; // 没有有效移动（和棋）
-            } else {
-                return None; // 棋盘未满但没有相关移动，视为找不到合适落子点
-            }
+            return None;
         }
 
-        // 如果只有一个相关移动，直接返回
+        // 处理只有一个可选落子的情况：计算其分数
         if relevant_moves.len() == 1 {
-            return Some(relevant_moves[0]);
+            let move_coords = relevant_moves[0];
+            return self
+                .get_score_for_move(game_state, move_coords)
+                .map(|score| (move_coords, score));
         }
 
-        // 初始化最佳移动和分数
-        // 可以将初始最佳移动设置为相关移动列表中的第一个
         let mut best_move = relevant_moves[0];
         let mut best_score = i32::MIN;
+        let mut alpha = i32::MIN;
+        let beta = i32::MAX;
 
-        // 初始化 Alpha-Beta 剪枝的 alpha 和 beta 值
-        let mut alpha = i32::MIN; // Alpha: 最大化玩家能确保得到的最低分数
-        let beta = i32::MAX; // Beta: 最小化玩家能限制最大化玩家得到的最高分数
-
-        // --- 落子顺序优化：评估第一层的每个相关移动，并排序 ---
-        // 使用一个简单的启发式：落子后的即时估值
         let mut moves_with_scores: Vec<((usize, usize), i32)> = relevant_moves
             .into_iter()
             .map(|m| {
-                // 复制状态用于进行临时的落子和估值，不影响原始 game_state
                 let mut temp_state = game_state.clone();
-                let mut score = i32::MIN; // 默认给一个低分，如果落子失败
-
+                let mut score = i32::MIN;
                 if temp_state.apply_move(m.0, m.1, self.stone).is_ok() {
-                    // 使用静态估值函数评估落子后的状态作为排序依据
                     score = self.evaluate_board(&temp_state);
-                    // 注意：这里只评估了即时分数，更复杂的排序可以使用浅层搜索（比如深度1的 Minimax）
                 }
                 (m, score)
             })
             .collect();
 
-        // 按估值从高到低排序（AI 是最大化玩家）
         moves_with_scores.sort_by(|a, b| b.1.cmp(&a.1));
 
         for ((r, c), _) in moves_with_scores {
-            // 模拟在 (r, c) 处落子，使用克隆的状态
             if let Some(mut next_state) = game_state.make_move_simulated(r, c, self.stone) {
-                // make_move_simulated 需要克隆
-
-                // --- 立即获胜检查 ---
-                // 如果这一步能直接获胜，就选择它
+                // 如果这一步能直接获胜，就选择它并返回最高分
                 if check_victory(&next_state) == Some(self.stone) {
-                    //println!("AI 找到直接获胜点： ({}, {})", r, c); // Debug
-                    return Some((r, c));
+                    return Some(((r, c), WIN_SCORE + self.search_depth as i32));
                 }
 
-                // --- 调用 Minimax ---
-                // 从对手（最小化玩家）的角度开始递归搜索
                 let score = self.minimax(
-                    &mut next_state,       // 传入模拟后的可变状态引用
-                    self.search_depth - 1, // 深度减 1
-                    false,                 // 现在轮到对手 (Minimizing Player)
-                    alpha,                 // 传递当前的 alpha
-                    beta,                  // 传递当前的 beta
+                    &mut next_state,
+                    self.search_depth - 1,
+                    false, // 轮到对手
+                    alpha,
+                    beta,
                 );
 
-                // --- 更新最佳移动 ---
                 if score > best_score {
                     best_score = score;
                     best_move = (r, c);
-                    //println!("AI 新的最佳移动： ({}, {}) 估值： {}", r, c, score); // Debug
                 }
-
-                // --- 更新 Alpha (最大化玩家的最佳保证) ---
-                // Alpha 是 AI 在当前路径下能获得的最大分数，用于剪枝
                 alpha = cmp::max(alpha, score);
-
-                // --- Beta 剪枝 ---
-                // 如果 Beta <= Alpha，表示最小化玩家在其他分支有更好的选择，
-                // 最大化玩家不会选择这条路径，可以停止搜索该分支。
                 if beta <= alpha {
-                    // println!("在深度 {} 进行 Alpha-Beta 剪枝 (alpha={}, beta={})", self.search_depth, alpha, beta); // Debug
-                    break; // 剪枝
+                    break;
                 }
-            } else {
             }
         }
-        //println!("AI 最终选择的移动： ({}, {}) 估值： {}", best_move.0, best_move.1, best_score);
-        Some(best_move) // 返回找到的最佳移动
+        Some((best_move, best_score))
+    }
+
+    /// 计算指定落子的 Minimax 分数。
+    pub fn get_score_for_move(
+        &self,
+        game_state: &GameState,
+        move_coords: (usize, usize),
+    ) -> Option<i32> {
+        // 使用 make_move_simulated 避免修改原始状态
+        if let Some(mut next_state) =
+            game_state.make_move_simulated(move_coords.0, move_coords.1, self.stone)
+        {
+            // 检查落子后是否立即获胜
+            if check_victory(&next_state) == Some(self.stone) {
+                return Some(WIN_SCORE + self.search_depth as i32);
+            }
+            // 如果没有获胜，则为对手运行 minimax
+            let score = self.minimax(
+                &mut next_state,
+                self.search_depth - 1, // 深度 - 1
+                false,                 // 轮到对手 (最小化玩家)
+                i32::MIN,              // Alpha
+                i32::MAX,              // Beta
+            );
+            Some(score)
+        } else {
+            None // 提供了无效的移动
+        }
+    }
+
+    pub fn make_move(&self, game_state: &GameState) -> Option<(usize, usize)> {
+        self.find_best_move_and_score(game_state).map(|(mv, _)| mv)
     }
 
     /// Minimax 递归函数 (带有 Alpha-Beta 剪枝)
