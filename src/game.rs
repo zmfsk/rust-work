@@ -5,47 +5,69 @@ pub const CELL_SIZE: f32 = 40.0; // 每个单元格的大小
 
 #[derive(Resource)]
 pub struct PlayerScore {
-    pub total_loss: i32,
     pub move_count: u32,
     pub current_rating: u32, // 0-100 scale
+    pub current_move_score: i32, // 当前步得分
+    pub best_move_score: i32,    // 最优步得分
+    pub move_scores: Vec<u32>,   // 存储每一步的得分百分比
 }
 
 impl PlayerScore {
     pub fn new() -> Self {
         PlayerScore {
-            total_loss: 0,
             move_count: 0,
             current_rating: 100, // Start with 100
+            current_move_score: 0,
+            best_move_score: 0,
+            move_scores: Vec::new(),
         }
     }
 
-    /// Adds a move's loss and updates the rating.
-    pub fn add_move(&mut self, loss: i32) {
-        self.total_loss += loss.max(0); // Ensure loss isn't negative
+    /// 更新玩家评分，计算规则：存储每一步的得分百分比，并计算加权平均分作为最终得分（权重为步数）
+    pub fn add_move(&mut self, current_score: i32, best_score: i32) {
         self.move_count += 1;
-
-        let avg_loss = if self.move_count > 0 {
-            self.total_loss / self.move_count as i32
+        self.current_move_score = current_score;
+        self.best_move_score = best_score;
+        
+        // 计算当前步的得分百分比：当前步得分 / 最优步得分 * 100
+        let score_percentage = if best_score > 0 {
+            ((current_score as f32 / best_score as f32) * 100.0).min(100.0) as u32
         } else {
-            0
+            100 // 如果最优步得分为0，则评分为100（满分）
+        };
+        
+        // 存储当前步的得分百分比
+        self.move_scores.push(score_percentage);
+        
+        // 计算加权平均分作为最终得分，权重为步数
+        let mut weighted_sum: u64 = 0;
+        let mut weight_sum: u64 = 0;
+        
+        for (i, &score) in self.move_scores.iter().enumerate() {
+            let weight = (i + 1) as u64; // 权重为步数（从1开始）
+            weighted_sum += score as u64 * weight*weight;
+            weight_sum += weight*weight;
+        }
+        
+        self.current_rating = if weight_sum > 0 {
+            (weighted_sum / weight_sum) as u32
+        } else {
+            100 // 默认值
         };
 
-        // Cap loss at 10000 (adjust as needed based on score weights)
-        let capped_loss = avg_loss.max(0).min(10000);
-        // Convert average loss to a 0-100 rating
-        self.current_rating = ((10000 - capped_loss) / 100) as u32;
-
         println!(
-            "Move #{}: Loss = {}, Avg Loss = {}, Rating = {}",
-            self.move_count, loss, avg_loss, self.current_rating
+            "Move #{}: 当前步得分 = {}, 最优步得分 = {}, 当前步评分 = {}, 加权平均评分 = {}",
+            self.move_count, current_score, best_score, score_percentage, self.current_rating
         );
     }
 
     /// Resets the score for a new game.
     pub fn reset(&mut self) {
-        self.total_loss = 0;
         self.move_count = 0;
         self.current_rating = 100;
+        self.current_move_score = 0;
+        self.best_move_score = 0;
+        self.move_scores.clear();
         println!("Player score reset.");
     }
 }

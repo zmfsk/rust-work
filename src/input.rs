@@ -1,4 +1,5 @@
 use crate::agent::SmartAgent;
+use crate::evaluator::BoardEvaluator;
 use crate::game::{CELL_SIZE, GRID_SIZE, GameState, PlayerScore, Stone, StoneComponent};
 use crate::game_manager::check_victory;
 use bevy::prelude::*;
@@ -56,24 +57,23 @@ pub fn place_stone(
 
                         // --- 玩家评分计算 (在应用落子之前) ---
                         let game_state_before = game_state.clone();
-                        // 为玩家创建一个临时 AI 代理以进行评估
-                        let player_agent = SmartAgent::new(player_stone, ai.get_difficulty());
-
-                        if let Some((best_move, best_score)) =
-                            player_agent.find_best_move_and_score(&game_state_before)
+                        
+                        // 使用新的评分系统
+                        if let Some((best_move, best_score)) = 
+                            BoardEvaluator::find_best_move(&game_state_before, player_stone)
                         {
-                            if let Some(player_move_score) =
-                                player_agent.get_score_for_move(&game_state_before, (row, col))
-                            {
-                                let loss = (best_score - player_move_score).max(0); // 损失值不能为负
-                                player_score.add_move(loss);
-                            } else {
-                                println!("警告: 无法评估玩家落子分数。");
-                                player_score.add_move(10000); // 如果评估失败，是否给予惩罚？
-                            }
+                            // 计算玩家实际落子的得分
+                            let player_move_score = 
+                                BoardEvaluator::evaluate_move(&game_state_before, row, col, player_stone);
+                            
+                            // 更新玩家评分，直接传入当前步得分和最优步得分
+                            player_score.add_move(player_move_score, best_score);
+                            
+                            println!("最佳落子: {:?}, 得分: {}", best_move, best_score);
+                            println!("玩家落子: ({}, {}), 得分: {}", row, col, player_move_score);
                         } else {
                             println!("警告: 找不到最佳落子/分数。也许没有可落子的地方了？");
-                            // 如果没有可行的移动，则不增加损失
+                            // 如果没有可行的移动，则不更新评分
                         }
 
                         println!("row: {}, col: {}", row, col);

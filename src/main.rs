@@ -1,5 +1,6 @@
 mod agent;
 mod board;
+mod evaluator;
 mod game;
 mod game_manager;
 mod input;
@@ -8,7 +9,7 @@ mod ui;
 use agent::SmartAgent;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use board::{ResetButton, SwitchButton, SwitchButtonText, setup_board};
+use board::{ResetButton, ScoreText, SwitchButton, SwitchButtonText, setup_board};
 use game::{CELL_SIZE, GRID_SIZE, GameState, PlayerScore, Stone, StoneComponent};
 use game_manager::check_victory;
 use input::place_stone;
@@ -107,6 +108,10 @@ fn main() {
             Update,
             handle_difficulty_options.run_if(in_state(AppState::InGame)),
         ) // 处理难度选项
+        .add_systems(
+            Update,
+            update_score_text.run_if(in_state(AppState::InGame)),
+        ) // 更新得分显示
         .run();
 }
 
@@ -187,6 +192,13 @@ fn update_switch_button_text(
                 Stone::White => "White",
             }
         );
+    }
+}
+
+/// 系统：更新得分显示
+fn update_score_text(mut text_query: Query<&mut Text, With<ScoreText>>, player_score: Res<PlayerScore>) {
+    for mut text in text_query.iter_mut() {
+        text.sections[0].value = format!("Player Rating: {}", player_score.current_rating);
     }
 }
 

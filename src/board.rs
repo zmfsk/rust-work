@@ -1,7 +1,7 @@
-use crate::game::{CELL_SIZE, GRID_SIZE};
+use crate::game::{CELL_SIZE, GRID_SIZE, PlayerScore};
 use bevy::prelude::*;
 
-pub fn setup_board(mut commands: Commands) {
+pub fn setup_board(mut commands: Commands, player_score: Res<PlayerScore>) {
     commands.spawn(Camera2dBundle::default()); // 确保摄像机存在
 
     // 将棋盘向左移动
@@ -37,8 +37,25 @@ pub fn setup_board(mut commands: Commands) {
 
     // 计算按钮位置
     let button_x = board_offset + (GRID_SIZE as f32 * CELL_SIZE) / 2.0 + 200.0;
+    let score_y = 350.0; // 得分显示位置
     let reset_button_y = 250.0;
     let switch_button_y = 150.0;
+    
+    // 添加玩家得分显示
+    commands.spawn((Text2dBundle {
+        text: Text::from_section(
+            format!("Player Rating: {}", player_score.current_rating),
+            TextStyle {
+                font_size: 24.0,
+                color: Color::rgb(0.2, 0.2, 0.2),
+                ..default()
+            },
+        )
+        .with_alignment(TextAlignment::Center),
+        transform: Transform::from_xyz(button_x, score_y, 2.0),
+        ..default()
+    }, ScoreText));
+
 
     // 添加重置按钮
     commands.spawn((
@@ -110,3 +127,6 @@ pub struct SwitchButton;
 
 #[derive(Component)]
 pub struct SwitchButtonText;
+
+#[derive(Component)]
+pub struct ScoreText;

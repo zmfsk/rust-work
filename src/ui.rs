@@ -1,4 +1,4 @@
-use crate::game::{GameState, Stone, StoneComponent};
+use crate::game::{GameState, PlayerScore, Stone, StoneComponent};
 use crate::agent::SmartAgent; // Add this import for SmartAgent
 use bevy::prelude::*;
 
@@ -538,6 +538,7 @@ pub fn handle_play_again_button(
     >,
     victory_window_query: Query<Entity, With<VictoryWindow>>,
     mut game_state: ResMut<GameState>,
+    mut player_score: ResMut<PlayerScore>,
     stone_query: Query<Entity, With<StoneComponent>>,
 ) {
     for (interaction, mut bg_color) in &mut button_query {
@@ -553,6 +554,9 @@ pub fn handle_play_again_button(
 
                 // 重置游戏状态
                 game_state.reset();
+                
+                // 重置玩家得分
+                player_score.reset();
 
                 // 清除所有棋子
                 for entity in stone_query.iter() {
