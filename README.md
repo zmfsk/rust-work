@@ -41,7 +41,7 @@
 ```bash
 # 克隆仓库
 git clone <仓库URL>
-cd gobang
+cd rust-work
 
 # 开发模式运行
 cargo run
